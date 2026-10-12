@@ -22,7 +22,7 @@ return {
 			"nvim-treesitter/nvim-treesitter-context",
 			enabled = true,
 			opts = { mode = "cursor", max_lines = 3 },
-			event = { "BufRead", "BufNewFile" },
+			event = "VeryLazy",
 			keys = {
 				{
 					"<leader>ut",
@@ -35,7 +35,16 @@ return {
 		},
 	},
 	config = function()
-		require("nvim-treesitter").install(parsers)
+		local installed = {}
+		for _, parser_name in ipairs(require("nvim-treesitter").get_installed()) do
+			installed[parser_name] = true
+		end
+		local missing_parsers = vim.tbl_filter(function(parser_name)
+			return not installed[parser_name]
+		end, parsers)
+		if #missing_parsers > 0 then
+			require("nvim-treesitter").install(missing_parsers)
+		end
 		vim.treesitter.language.register("json", "jsonc")
 
 		vim.api.nvim_create_autocmd("FileType", {
