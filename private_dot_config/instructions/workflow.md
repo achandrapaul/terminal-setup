@@ -4,10 +4,10 @@ Single source of truth for analysing, planning, and changing software. Every rul
 
 ## Tiers
 
-| Tier | When | Flow |
-|---|---|---|
-| Lean | Default for every task | Plan mode → questions → one-liners → ReadyForExecution → Execution (checklist) → report |
-| Clean | Only when the user says "large task", "large tier", "clean mode", or "clean tier" | Lean flow + silent plan file + slices |
+| Tier  | When                                                                              | Flow                                                                                    |
+| ----- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Lean  | Default for every task                                                            | Plan mode → questions → one-liners → ReadyForExecution → Execution (checklist) → report |
+| Clean | Only when the user says "large task", "large tier", "clean mode", or "clean tier" | Lean flow + silent plan file + slices                                                   |
 
 - "lean mode" or "lean tier" switches back. The tier persists for the session.
 
@@ -26,11 +26,11 @@ Single source of truth for analysing, planning, and changing software. Every rul
 ## One-liners
 
 - Plan mode: plain numbered list under a bold **Steps** heading, no checkboxes.
+- Stubs as one-liners under **Stubs**: `path: signature -- intent`.
 - Execution mode: `N. ☐ text`, turned into `N. ☑ text` when done.
 - Group steps by area under a plain area-name line above its items. Keep areas generic and few (e.g. API, Data, UI, Tests, Config, Infra, Docs, Verification), never file or function names. Skip area lines when every step shares one area.
 - Numbering runs continuously across areas; never restart at 1 per area.
 - NEVER use `- [ ]` syntax. No blank lines between items, no sub-bullets, short lines that do not wrap, at most 25 in total.
-- Stubs as one-liners under **Stubs**: `path: signature -- intent`.
 - Re-show the full one-liners after every round until a go-signal.
 - Report findings or proposed changes as one-liners, then ask ReadyForExecution — only when no material question is open and the plan-mode file is updated. NEVER ask it without the one-liners.
 
