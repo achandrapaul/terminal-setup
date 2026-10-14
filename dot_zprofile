@@ -31,6 +31,7 @@ if [[ -f "$CUSTOM_FILE" ]]; then
 fi
 
 # export FZF_DEFAULT_OPTS="--height=81% --tac --layout=reverse --info=inline --border --margin=0 --padding=1 --bind='ctrl-y:execute-silent(echo {+} | pbcopy)'";
+export FZF_DEFAULT_OPTS="--layout=default";
 export FZF_DEFAULT_COMMAND="ls -a";
 
 # man pages through bat
@@ -40,6 +41,9 @@ export FZF__PREVIEW__COMMAND='bat --style=numbers --color=always --line-range :5
 export FZF__DIR__PREVIEW__COMMAND='tree -aC -I "${TREE__GLOBAL_IGNORE}" {} | head -700';
 export TREE__GLOBAL_IGNORE="node_modules|.history|webpack|.next|.idea|.gradle|.vscode";
 export FZF__SMART__PREVIEW__COMMAND="[ -d {} ] && $FZF__DIR__PREVIEW__COMMAND || $FZF__PREVIEW__COMMAND";
+
+export _ZO_FZF_OPTS="--height=60% --border --info=inline --keep-right --no-sort --exact --exit-0 --select-1 --preview='eza -1 --color=always --icons {2..}' --preview-window=right,40%";
+export _ZO_EXCLUDE_DIRS="$HOME:$HOME/Downloads/*:/tmp/*:/private/*";
 
 #### ------------------------------
 #### eza - Color Scheme Definitions
@@ -205,7 +209,7 @@ function _tmux_manager() {
   if [[ -z "$GHQ_ROOT" ]]; then
    return;
   fi
-  ghq list -p | fzf-tmux -p -h 50% -w 70% | read dir_full_path
+  { ghq list -p; zoxide query -l; } | awk '!seen[$0]++' | fzf --tmux=center,70%,50% | read dir_full_path
 
   basename "$dir_full_path" 2> /dev/null | tr . _ | read dir_name
 
@@ -217,7 +221,7 @@ function _tmux_manager() {
 }
 
 function _tmux_smart_attach_ () {
-  session=`tmux list-sessions | fzf-tmux -p +s --tac | cut -d ':' -f1`
+  session=`tmux list-sessions | fzf --tmux +s --tac | cut -d ':' -f1`
 
   if [[ -z "$session" ]]; then
     echo "aborting";

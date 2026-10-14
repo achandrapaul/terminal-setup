@@ -179,8 +179,8 @@ zstyle ':fzf-tab:complete:git-(log|show):*' fzf-preview \
   'git log --color=always --oneline --graph $word'
 
 # render in a tmux popup; , / . switch completion groups
-zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
-zstyle ':fzf-tab:*' popup-min-size 80 12
+zstyle ':fzf-tab:*' fzf-command fzf
+zstyle ':fzf-tab:*' fzf-flags --tmux=center,80%,60% --layout=default
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:*' continuous-trigger '/'
 
@@ -195,7 +195,7 @@ fzf-rg-widget() {
   setopt localoptions pipefail no_aliases 2>/dev/null
   local rgcmd='rg -H --column --line-number --no-heading --color=always --smart-case'
   local hit
-  hit=$(fzf --ansi --disabled --height 70% --reverse --border --prompt 'rg> ' \
+  hit=$(fzf --ansi --disabled --height 70% --border --prompt 'rg> ' \
         --delimiter : \
         --bind "start:reload:$rgcmd {q} || true" \
         --bind "change:reload:sleep 0.1; $rgcmd {q} || true" \
@@ -217,6 +217,29 @@ fzf-rg-widget() {
 zle -N fzf-rg-widget
 bindkey '\ec' fzf-rg-widget    # content search (takes \ec from fzf's default)
 bindkey '\ee' fzf-cd-widget    # cd (fzf's own widget, moved off \ec)
+
+zi-widget() {
+  local dir
+  dir=$(zoxide query -i < /dev/tty)
+  if [[ -z $dir ]]; then zle redisplay; return 0; fi
+  zle push-line
+  BUFFER="builtin cd -- ${(q)dir}"
+  zle accept-line
+  local ret=$?
+  zle reset-prompt
+  return $ret
+}
+zle -N zi-widget
+bindkey '\ez' zi-widget        # zoxide picker, cd
+
+zoxide-insert-widget() {
+  local dir
+  dir=$(zoxide query -i < /dev/tty)
+  [[ -n $dir ]] && LBUFFER+="${(q)dir}"
+  zle reset-prompt
+}
+zle -N zoxide-insert-widget
+bindkey '^X^Z' zoxide-insert-widget   # zoxide picker, insert path
 
 # --- tmux -----------------------------------------------------------------
 bindkey -s "^y" '_tmux_manager^M'
