@@ -33,6 +33,7 @@
 "brew-cask:ghostty" = { os = "macos" }
 "brew-cask:karabiner-elements" = { os = "macos" }
 "brew-cask:raycast" = { os = "macos" }
+"brew-cask:hammerspoon" = { os = "macos" }
 "brew-cask:jordanbaird-ice" = { os = "macos" }
 "brew-cask:espanso" = { os = "macos" }
 "brew-cask:bruno" = { os = "macos" }

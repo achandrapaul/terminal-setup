@@ -10,7 +10,7 @@ Personal macOS dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | Terminal | ghostty, kitty, alacritty, tmux |
 | Editor | neovim |
 | Files & search | yazi, broot, television |
-| Window management | AeroSpace, Karabiner-Elements |
+| Window management & automation | AeroSpace, Karabiner-Elements, Hammerspoon |
 | Text expansion | espanso |
 | Git | delta, SSH commit signing |
 
