@@ -43,7 +43,7 @@ chezmoi init --apply AnudeepChPaul/terminal-setup
 | --- | --- |
 | `ctrl-alt-h/j/k/l` | Focus window |
 | `ctrl-alt-shift-h/j/k/l` | Move window |
-| `alt-1..9`, `alt-t` | Switch workspace |
+| `ctrl-1..9`, `ctrl-0` (T) | Switch workspace |
 | `ctrl-alt-shift-1..9` | Move window to workspace |
 | `ctrl-alt-/` | Toggle tiles horizontal/vertical |
 | `ctrl-alt-,` | Toggle accordion |
