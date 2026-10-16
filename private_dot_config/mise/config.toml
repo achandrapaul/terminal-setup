@@ -66,7 +66,7 @@ tree-sitter = "latest"
 "npm:@vtsls/language-server" = "latest"
 "npm:graphql-language-service-cli" = "latest"
 
-[tasks.zsh-plugins-update]
+[tasks."zsh:plugins:update"]
 description = "Re-pin zsh plugins in .chezmoiexternal.toml to upstream HEAD"
 run = '''
 set -e
@@ -98,18 +98,20 @@ run = '''
 completions_dir="${XDG_CONFIG_HOME:-$HOME/.config}/completions"
 mkdir -p "$completions_dir"
 failed=0
+expected_files=" "
 while read -r tool_name generate_command; do
+  expected_files="${expected_files}_${tool_name} "
   if ! command -v "$tool_name" >/dev/null; then
     echo "$tool_name not installed, skipping"
     continue
   fi
   target_file="$completions_dir/_$tool_name"
-  if sh -c "$generate_command" > "$target_file.tmp" 2>/dev/null && [ -s "$target_file.tmp" ]; then
+  if error_output="$(bash -c "set -eo pipefail; $generate_command" 2>&1 >"$target_file.tmp" </dev/null)" && [ -s "$target_file.tmp" ]; then
     mv "$target_file.tmp" "$target_file"
     echo "$tool_name ok"
   else
     rm -f "$target_file.tmp"
-    echo "$tool_name failed" >&2
+    echo "$tool_name failed${error_output:+: $error_output}" >&2
     failed=1
   fi
 done <<'TOOLS'
@@ -132,11 +134,18 @@ glow glow completion zsh
 npm printf '#compdef npm\n'; npm completion; printf '_npm_completion "$@"\n'
 pnpm printf '#compdef pnpm pn\n'; pnpm completion zsh | grep -v '^#compdef'; printf '_pnpm_completion "$@"\n'
 TOOLS
+for completion_file in "$completions_dir"/_*; do
+  [ -e "$completion_file" ] || continue
+  case "$expected_files" in
+    *" ${completion_file##*/} "*) ;;
+    *) rm -f "$completion_file" && echo "${completion_file##*/} removed" ;;
+  esac
+done
 rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/zsh/zcompdump-*
 exit $failed
 '''
 
-[tasks.nvim-setup]
+[tasks."setup:nvim"]
 description = "Set up nvim end to end via ~/.config/nvim/mise.toml"
 run = '''
 set -e

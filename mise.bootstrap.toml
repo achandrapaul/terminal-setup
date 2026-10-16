@@ -144,7 +144,7 @@ if [ -n "$signing_email" ] && [ -n "$signing_key" ] && ! grep -qF "$signing_key"
 fi
 '''
 
-[tasks.publish-kickstart]
+[tasks."publish:kickstart"]
 description = "Publish ~/kickstart.sh to GitHub Pages"
 quiet = true
 run = '''
