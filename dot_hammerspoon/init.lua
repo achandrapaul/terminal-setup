@@ -19,7 +19,24 @@ local function newestTranscriptIn(projectPath)
   return newestPath
 end
 
+local function tmuxPopupIsOpen()
+  local serverPid = hs.execute(tmuxPath .. " display-message -p '#{pid}'")
+  serverPid = serverPid and serverPid:match("%d+")
+  if not serverPid then return false end
+  local paneTtys = {}
+  for paneTty in (hs.execute(tmuxPath .. " list-panes -a -F '#{pane_tty}'") or ""):gmatch("/dev/(%S+)") do
+    paneTtys[paneTty] = true
+  end
+  for parentPid, childTty in (hs.execute("/bin/ps -A -o ppid=,tty=") or ""):gmatch("(%d+)%s+(%S+)") do
+    if parentPid == serverPid and childTty ~= "??" and not paneTtys[childTty] then
+      return true
+    end
+  end
+  return false
+end
+
 local function focusedClaudePanePath()
+  if tmuxPopupIsOpen() then return nil end
   local paneInfo, succeeded = hs.execute(tmuxPath .. " display-message -p '#{pane_current_command}|#{pane_current_path}'")
   if not succeeded or not paneInfo then return nil end
   local paneCommand, panePath = paneInfo:match("^([^|]*)|(.-)%s*$")
