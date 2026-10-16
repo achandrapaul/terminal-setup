@@ -141,7 +141,7 @@ for completion_file in "$completions_dir"/_*; do
     *) rm -f "$completion_file" && echo "${completion_file##*/} removed" ;;
   esac
 done
-rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/zsh/zcompdump-*
+zsh -ic compdump </dev/null 2>&1 | { grep -v "can't change option: zle" >&2 || true; }
 exit $failed
 '''
 
