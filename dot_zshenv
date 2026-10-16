@@ -1,9 +1,5 @@
 typeset -U path PATH fpath FPATH
 
-# Cached tool completions (kubectl, helm, gh, docker, yq, delta, mise).
-# Regenerate after upgrades: mise run zsh-completions-update
-fpath=("$HOME/.zsh/completions" $fpath)
-
 # Cached tool inits: sourcing a file beats forking the tool on every shell (~90ms).
 # Auto-regenerates when the tool binary is newer than its cache, or the cache is
 # missing/empty. To force a rebuild: rm -rf ~/.zsh/cache

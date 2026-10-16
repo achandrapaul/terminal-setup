@@ -123,7 +123,7 @@ set -e
 [ -d "$HOME/.local/share/nvim/lazy/lazy.nvim" ] || mise exec -- bash "$HOME/.config/zsh/bootstrap-plugins.sh" --nvim
 {% if os() == "macos" %}brew list --cask aerospace >/dev/null 2>&1 || brew install --cask nikitabobko/tap/aerospace{% endif %}
 mise exec -- npm ls -g @openai/codex >/dev/null 2>&1 || mise exec -- npm install -g @openai/codex
-mise run zsh-completions-update || echo "zsh completions: some tools failed, rerun mise run zsh-completions-update" >&2
+mise run zsh:completions:update || echo "zsh completions: some tools failed, rerun mise run zsh:completions:update" >&2
 '''
 
 [tasks.bootstrap]

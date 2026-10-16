@@ -1,3 +1,6 @@
+# Generated tool completions, loaded before compinit runs in no-omz.zsh.
+# Regenerate after upgrades: mise run zsh:completions:update
+fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/completions" $fpath)
 source "$HOME/.config/zsh/no-omz.zsh"
 
 # Sets cursor to blinking block

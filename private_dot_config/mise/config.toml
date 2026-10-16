@@ -92,10 +92,10 @@ if ! git -C "$source_dir" diff --quiet -- .chezmoiexternal.toml; then
 fi
 '''
 
-[tasks.zsh-completions-update]
-description = "Regenerate cached zsh completions in ~/.zsh/completions"
+[tasks."zsh:completions:update"]
+description = "Regenerate cached zsh completions in ~/.config/completions"
 run = '''
-completions_dir="$HOME/.zsh/completions"
+completions_dir="${XDG_CONFIG_HOME:-$HOME/.config}/completions"
 mkdir -p "$completions_dir"
 failed=0
 while read -r tool_name generate_command; do
@@ -120,6 +120,17 @@ docker docker completion zsh
 yq yq shell-completion zsh
 delta delta --generate-completion zsh
 mise mise completion zsh
+chezmoi chezmoi completion zsh
+just just --completions zsh
+uv uv generate-shell-completion zsh
+rg rg --generate complete-zsh
+fd fd --gen-completions zsh
+bat bat --completion zsh
+starship starship completions zsh
+atuin atuin gen-completions --shell zsh
+glow glow completion zsh
+npm printf '#compdef npm\n'; npm completion; printf '_npm_completion "$@"\n'
+pnpm printf '#compdef pnpm pn\n'; pnpm completion zsh | grep -v '^#compdef'; printf '_pnpm_completion "$@"\n'
 TOOLS
 rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/zsh/zcompdump-*
 exit $failed
