@@ -12,5 +12,11 @@ encryption = "age"
   autoCommit = true
   autoPush = true
 
+[hooks.re-add.pre]
+  command = "{{ .chezmoi.homeDir }}/.config/bin/chezmoi-encrypt-digest"
+
+[hooks.re-add.post]
+  command = "{{ .chezmoi.homeDir }}/.config/bin/chezmoi-encrypt-digest"
+
 [data]
   email = {{ $email | quote }}

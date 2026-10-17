@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+source_dir="$(chezmoi source-path)/private_dot_config/private_digest"
+plaintext_file="$source_dir/private_config.yaml"
+encrypted_file="$source_dir/encrypted_private_config.yaml.age"
+
+[ -f "$plaintext_file" ] || exit 0
+
+chezmoi encrypt < "$plaintext_file" > "$encrypted_file.tmp"
+mv "$encrypted_file.tmp" "$encrypted_file"
+rm -f "$plaintext_file"
