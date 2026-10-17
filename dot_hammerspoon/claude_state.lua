@@ -2,6 +2,7 @@ local claudeState = {}
 
 local tmuxPath = "/opt/homebrew/bin/tmux"
 local stateDir = os.getenv("HOME") .. "/.claude/session-status"
+local claudeSessionsDir = os.getenv("HOME") .. "/.claude/sessions"
 local refreshIntervalSeconds = 1
 
 local currentSessions = {}
@@ -17,25 +18,26 @@ end
 
 local function claudePanes()
   local panes, paneTtys = {}, {}
-  local paneList = hs.execute(tmuxPath .. " list-panes -a -F '#{pane_id} #{pane_tty} #{pane_current_command} #{session_name}:#{window_index}.#{pane_index}'") or ""
-  for paneId, paneTty, paneCommand, paneLocation in paneList:gmatch("(%%%d+) /dev/(%S+) (%S+) ([^\n]+)") do
+  local paneList = hs.execute(tmuxPath .. " list-panes -a -F '#{pane_id} #{pane_tty} #{pane_current_command} #{session_name}:#{window_index}.#{pane_index}|#{pane_current_path}'") or ""
+  for paneId, paneTty, paneCommand, paneLocation, panePath in paneList:gmatch("(%%%d+) /dev/(%S+) (%S+) ([^|\n]+)|([^\n]*)") do
     paneTtys[paneTty] = true
     if isClaudeCommand(paneCommand) then
-      panes[paneId] = paneLocation
+      panes[paneId] = { location = paneLocation, path = panePath }
     end
   end
   return panes, paneTtys
 end
 
-local function claudeTtysOutsideTmux(paneTtys)
-  local outsideTtys = {}
-  for processTty, commandPath in (hs.execute("/bin/ps -A -o tty=,comm=") or ""):gmatch("(%S+)%s+([^\n]+)") do
+local function claudeProcesses(paneTtys)
+  local outsideTtys, livePids = {}, {}
+  for processId, processTty, commandPath in (hs.execute("/bin/ps -A -o pid=,tty=,comm=") or ""):gmatch("(%d+)%s+(%S+)%s+([^\n]+)") do
     local commandName = commandPath:match("([^/]+)%s*$") or ""
-    if processTty ~= "??" and not paneTtys[processTty] and isClaudeCommand(commandName) then
-      outsideTtys[processTty] = true
+    if isClaudeCommand(commandName) then
+      livePids[tonumber(processId)] = true
+      if processTty ~= "??" and not paneTtys[processTty] then outsideTtys[processTty] = true end
     end
   end
-  return outsideTtys
+  return outsideTtys, livePids
 end
 
 local function readSessionFile(filePath)
@@ -44,6 +46,24 @@ local function readSessionFile(filePath)
   local content = sessionFile:read("a")
   sessionFile:close()
   return hs.json.decode(content)
+end
+
+local function attachClaudeSessionInfo(livePanes, livePids)
+  if hs.fs.attributes(claudeSessionsDir, "mode") ~= "directory" then return end
+  for fileName in hs.fs.dir(claudeSessionsDir) do
+    if fileName:match("^%d+%.json$") then
+      local claudeSession = readSessionFile(claudeSessionsDir .. "/" .. fileName)
+      local paneId = claudeSession and type(claudeSession.tmux) == "string" and claudeSession.tmux:match("(%%%d+)$")
+      local livePane = paneId and livePanes[paneId]
+      if livePane and livePids[claudeSession.pid] and (claudeSession.updatedAt or 0) >= (livePane.claudeUpdatedAt or 0) then
+        livePane.name = claudeSession.name
+        livePane.claudeStatus = claudeSession.status
+        livePane.claudeUpdatedAt = claudeSession.updatedAt or 0
+        livePane.claudeStatusSince = claudeSession.statusUpdatedAt and math.floor(claudeSession.statusUpdatedAt / 1000)
+        livePane.path = claudeSession.cwd or livePane.path
+      end
+    end
+  end
 end
 
 local function effectiveStatus(session)
@@ -58,7 +78,9 @@ local function reload()
   currentPaneLocations = livePanes
   liveClaudeCount = 0
   for _ in pairs(livePanes) do liveClaudeCount = liveClaudeCount + 1 end
-  for _ in pairs(claudeTtysOutsideTmux(paneTtys)) do liveClaudeCount = liveClaudeCount + 1 end
+  local outsideTtys, livePids = claudeProcesses(paneTtys)
+  for _ in pairs(outsideTtys) do liveClaudeCount = liveClaudeCount + 1 end
+  attachClaudeSessionInfo(livePanes, livePids)
   local newestByPane = {}
   for fileName in hs.fs.dir(stateDir) do
     if fileName:match("%.json$") then

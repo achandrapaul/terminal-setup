@@ -31,19 +31,30 @@ local function ageText(updatedSeconds)
   return math.floor(elapsedSeconds / 86400) .. "d"
 end
 
+local claudeStatusNames = {
+  idle = "idle",
+  busy = "working",
+  working = "working",
+  running = "working",
+  waiting = "waiting",
+  needs_input = "waiting",
+}
+
 local function sessionRows()
   local sessionsByPane = {}
   for _, session in ipairs(claudeState.sessions()) do sessionsByPane[session.pane] = session end
   local rows = {}
-  for paneId, paneLocation in pairs(claudeState.livePanes()) do
+  for paneId, livePane in pairs(claudeState.livePanes()) do
     local session = sessionsByPane[paneId] or {}
+    local sessionPath = session.cwd or livePane.path
     rows[#rows + 1] = {
       pane = paneId,
-      location = paneLocation,
-      cwd = session.cwd,
-      projectName = session.cwd and session.cwd:match("([^/]+)/?$") or paneId,
-      status = session.status or "unknown",
-      updated = session.updated,
+      location = livePane.location,
+      cwd = sessionPath,
+      sessionName = livePane.name,
+      projectName = sessionPath and sessionPath:match("([^/]+)/?$") or paneId,
+      status = session.status or claudeStatusNames[livePane.claudeStatus] or livePane.claudeStatus or "unknown",
+      updated = session.updated or livePane.claudeStatusSince,
     }
   end
   table.sort(rows, function(first, second) return first.location < second.location end)
@@ -56,11 +67,11 @@ local function panelHtml(rows)
     local keyLabel = rowIndex <= maxNumberedRows and ("<kbd>⌥" .. rowIndex .. "</kbd>") or "<span class='nokey'></span>"
     rowParts[#rowParts + 1] = string.format([[
 <div class='row'>%s<div class='main'>
-  <div class='top'><span class='project'>%s</span>
+  <div class='top'><span class='name'>%s</span><span class='project'>%s</span>
     <span class='status' style='color:%s'>● %s</span><span class='age'>%s</span>
     <span class='location'>%s</span></div>
   <div class='path'>%s</div></div></div>]],
-      keyLabel, escapeHtml(row.projectName), statusColors[row.status] or statusColors.unknown,
+      keyLabel, escapeHtml(row.sessionName or row.projectName), row.sessionName and escapeHtml(row.projectName) or "", statusColors[row.status] or statusColors.unknown,
       escapeHtml(row.status), escapeHtml(ageText(row.updated)), escapeHtml(row.location), escapeHtml(row.cwd or ""))
   end
   if #rowParts == 0 then rowParts[1] = "<div class='empty'>No Claude running in tmux</div>" end
@@ -75,7 +86,8 @@ local function panelHtml(rows)
   .row:first-of-type { border-top: none; }
   .main { flex: 1; min-width: 0; }
   .top { display: flex; gap: 10px; align-items: baseline; }
-  .project { font-weight: 600; color: #FAFAFA; }
+  .name { font-weight: 600; color: #FAFAFA; }
+  .project { color: #A1A1AA; }
   .age { color: #A1A1AA; }
   .location { margin-left: auto; color: #71717A; font: 11px ui-monospace, Menlo, monospace; }
   .path { color: #71717A; font-size: 11px; word-break: break-all; margin-top: 2px; }

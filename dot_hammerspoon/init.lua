@@ -175,7 +175,7 @@ actions.register("Save tmux (resurrect)", { "cmd", "ctrl" }, "w", resurrect.save
 actions.register("Restore tmux (resurrect)", { "cmd", "ctrl" }, "r", resurrect.restore)
 actions.register("Command palette", { "cmd", "ctrl" }, "p", palette.show)
 actions.register("Digest summary", { "cmd", "ctrl" }, "d", summaryPanel.show)
-actions.add("Claude sessions", sessionsPanel.show)
+actions.register("Claude sessions", { "cmd", "ctrl" }, "c", sessionsPanel.show)
 
 edgeBar.start()
 claudeState.start(function(sessions)
