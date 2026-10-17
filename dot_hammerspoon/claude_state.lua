@@ -5,6 +5,7 @@ local stateDir = os.getenv("HOME") .. "/.claude/session-status"
 local refreshIntervalSeconds = 1
 
 local currentSessions = {}
+local currentPaneLocations = {}
 local liveClaudeCount = 0
 local resolvedOverrides = {}
 local changeHandler
@@ -16,11 +17,11 @@ end
 
 local function claudePanes()
   local panes, paneTtys = {}, {}
-  local paneList = hs.execute(tmuxPath .. " list-panes -a -F '#{pane_id} #{pane_tty} #{pane_current_command}'") or ""
-  for paneId, paneTty, paneCommand in paneList:gmatch("(%%%d+) /dev/(%S+) (%S+)") do
+  local paneList = hs.execute(tmuxPath .. " list-panes -a -F '#{pane_id} #{pane_tty} #{pane_current_command} #{session_name}:#{window_index}.#{pane_index}'") or ""
+  for paneId, paneTty, paneCommand, paneLocation in paneList:gmatch("(%%%d+) /dev/(%S+) (%S+) ([^\n]+)") do
     paneTtys[paneTty] = true
     if isClaudeCommand(paneCommand) then
-      panes[paneId] = true
+      panes[paneId] = paneLocation
     end
   end
   return panes, paneTtys
@@ -54,6 +55,7 @@ end
 
 local function reload()
   local livePanes, paneTtys = claudePanes()
+  currentPaneLocations = livePanes
   liveClaudeCount = 0
   for _ in pairs(livePanes) do liveClaudeCount = liveClaudeCount + 1 end
   for _ in pairs(claudeTtysOutsideTmux(paneTtys)) do liveClaudeCount = liveClaudeCount + 1 end
@@ -86,6 +88,10 @@ end
 
 function claudeState.sessions()
   return currentSessions
+end
+
+function claudeState.livePanes()
+  return currentPaneLocations
 end
 
 function claudeState.liveClaudeCount()

@@ -1,10 +1,10 @@
 local promptCapture = require("prompt_capture")
 local claudeState = require("claude_state")
+local paneJump = require("pane_jump")
 
 local approval = {}
 
 local tmuxPath = "/opt/homebrew/bin/tmux"
-local ghosttyBundleId = "com.mitchellh.ghostty"
 local panelWidth = 640
 local panelMargin = 16
 local captureRetryLimit = 10
@@ -217,15 +217,7 @@ end
 
 function approval.jump()
   local entry = activeEntry()
-  if not entry then return end
-  local paneTarget = "'" .. entry.session.pane .. "'"
-  local _, succeeded = hs.execute(string.format("%s select-window -t %s && %s select-pane -t %s && %s switch-client -t %s",
-    tmuxPath, paneTarget, tmuxPath, paneTarget, tmuxPath, paneTarget))
-  if not succeeded then
-    hs.alert.show("Couldn't switch to pane " .. entry.session.pane)
-    return
-  end
-  hs.application.launchOrFocusByBundleID(ghosttyBundleId)
+  if entry then paneJump.to(entry.session.pane) end
 end
 
 function approval.cycle()

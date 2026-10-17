@@ -19,6 +19,10 @@ function actions.describe(name, modifiers, key, handler)
   }
 end
 
+function actions.add(name, handler)
+  registeredActions[#registeredActions + 1] = { name = name, shortcut = "", handler = handler }
+end
+
 function actions.register(name, modifiers, key, handler)
   actions.describe(name, modifiers, key, handler)
   hs.hotkey.bind(modifiers, key, handler)

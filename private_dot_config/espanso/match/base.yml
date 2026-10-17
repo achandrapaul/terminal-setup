@@ -135,3 +135,5 @@ matches:
         type: form
         params:
           layout: "Component Name: [[name]]"
+  - trigger: "*cp"
+    replace: pwd | pbcopy

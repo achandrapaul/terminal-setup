@@ -8,6 +8,7 @@ local screenAsk = require("screen_ask")
 local resurrect = require("resurrect")
 local palette = require("palette")
 local summaryPanel = require("summary_panel")
+local sessionsPanel = require("sessions_panel")
 
 local claudeProjectsDir = os.getenv("HOME") .. "/.claude/projects"
 local tmuxPath = "/opt/homebrew/bin/tmux"
@@ -174,10 +175,12 @@ actions.register("Save tmux (resurrect)", { "cmd", "ctrl" }, "w", resurrect.save
 actions.register("Restore tmux (resurrect)", { "cmd", "ctrl" }, "r", resurrect.restore)
 actions.register("Command palette", { "cmd", "ctrl" }, "p", palette.show)
 actions.register("Digest summary", { "cmd", "ctrl" }, "d", summaryPanel.show)
+actions.add("Claude sessions", sessionsPanel.show)
 
 edgeBar.start()
 claudeState.start(function(sessions)
   approval.update(sessions)
+  sessionsPanel.update()
   edgeBar.show(approval.isOpen() and "waiting" or claudeState.aggregateStatus())
 end)
 
