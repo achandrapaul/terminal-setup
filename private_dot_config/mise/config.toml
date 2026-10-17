@@ -153,3 +153,30 @@ nvim_config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
 mise trust "$nvim_config_dir/mise.toml"
 mise -C "$nvim_config_dir" run setup
 '''
+
+[tasks."tmux:layout"]
+description = "Set up the tmux windows: util, console, admin, 1c, exec"
+run = '''
+set -e
+session_name="${TMUX:+$(tmux display-message -p '#S')}"
+session_name="${session_name:-ghost}"
+tmux has-session -t "$session_name" 2>/dev/null || tmux new-session -d -s "$session_name"
+digest_dir="${GHQ_ROOT:-$HOME/Projects}/github.com/achandrapaul/digest"
+projects_dir="$HOME/Projects"
+util_window="$session_name:^"
+window_exists() {
+  tmux list-windows -t "$session_name" -F '#{window_name}' | grep -qx "$1"
+}
+if ! window_exists util; then
+  tmux rename-window -t "$util_window" util
+  tmux send-keys -t "$util_window" "cd '$digest_dir' && clear" Enter
+fi
+util_panes="$(tmux list-panes -t "$session_name:util" | wc -l | tr -d ' ')"
+if [ "$util_panes" -eq 1 ]; then
+  tmux split-window -h -t "$session_name:util" -c "$digest_dir" digest
+  tmux select-pane -t "$session_name:util" -L
+fi
+for window_name in console admin 1c exec; do
+  window_exists "$window_name" || tmux new-window -d -a -t "$session_name:$" -n "$window_name" -c "$projects_dir"
+done
+'''
