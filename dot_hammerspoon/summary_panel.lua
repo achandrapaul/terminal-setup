@@ -98,7 +98,8 @@ end
 local function present(report)
   ensurePanel():html(panelHtml(report))
   panel:show()
-  if not escapeHotkey then escapeHotkey = hs.hotkey.bind({}, "escape", summaryPanel.hide) end
+  if escapeHotkey then escapeHotkey:delete() end
+  escapeHotkey = hs.hotkey.bind({}, "escape", summaryPanel.hide)
 end
 
 function summaryPanel.show()
