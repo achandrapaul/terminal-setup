@@ -1,3 +1,14 @@
+require("hs.ipc")
+
+local actions = require("actions")
+local claudeState = require("claude_state")
+local edgeBar = require("edge_bar")
+local approval = require("approval")
+local screenAsk = require("screen_ask")
+local resurrect = require("resurrect")
+local palette = require("palette")
+local summaryPanel = require("summary_panel")
+
 local claudeProjectsDir = os.getenv("HOME") .. "/.claude/projects"
 local tmuxPath = "/opt/homebrew/bin/tmux"
 local ghosttyBundleId = "com.mitchellh.ghostty"
@@ -155,6 +166,20 @@ end
 
 claudeCopyHotkey = bindWhileFocused(ghosttyBundleId, { "ctrl" }, "y", copyClaudeLastResponse)
 bindWhileFocused(zoomBundleId, { "ctrl" }, "f", setZoomMicVolumeToFull)
+
+actions.describe("Copy Claude's last response (Ghostty)", { "ctrl" }, "y", copyClaudeLastResponse)
+actions.describe("Set mic input to 100% (Zoom)", { "ctrl" }, "f", setZoomMicVolumeToFull)
+actions.register("Ask Claude about this window", { "cmd", "ctrl" }, "s", screenAsk.askAboutFocusedWindow)
+actions.register("Save tmux (resurrect)", { "cmd", "ctrl" }, "w", resurrect.save)
+actions.register("Restore tmux (resurrect)", { "cmd", "ctrl" }, "r", resurrect.restore)
+actions.register("Command palette", { "cmd", "ctrl" }, "p", palette.show)
+actions.register("Digest summary", { "cmd", "ctrl" }, "d", summaryPanel.show)
+
+edgeBar.start()
+claudeState.start(function(sessions)
+  approval.update(sessions)
+  edgeBar.show(approval.isOpen() and "waiting" or claudeState.aggregateStatus())
+end)
 
 appFocusWatcher = hs.application.watcher.new(function(_, eventType, app)
   if eventType == hs.application.watcher.activated and app then
