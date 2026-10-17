@@ -110,7 +110,7 @@ function summaryPanel.show()
       return
     end
     present(report)
-  end, { "summary", "--json" })
+  end, { "summary", "--json", "--exclude=pr" })
   digestTask:start()
 end
 
