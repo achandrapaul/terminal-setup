@@ -23,7 +23,7 @@ matches:
   - trigger: "*gP"
     replace: "git push origin "
 
-  - trigger: "*gPU"
+  - trigger: "*gfU"
     replace: "git push --set-upstream origin FUE-$|$ --force"
 
   - trigger: "*gpr"
@@ -107,9 +107,6 @@ matches:
   - trigger: "*yns"
     replace: 'yarn; NODE_OPTIONS="--max-old-space-size=12192" yarn start'
 
-  - trigger: "*yno"
-    replace: 'yarn; NODE_OPTIONS="--max-old-space-size=12192" yarn dev-server:otk'
-
   - trigger: "*ys"
     replace: "yarn; yarn start"
 
@@ -137,3 +134,108 @@ matches:
           layout: "Component Name: [[name]]"
   - trigger: "*cp"
     replace: pwd | pbcopy
+
+  - trigger: "*hrl"
+    replace: 'hs -c "hs.reload()"'
+
+  - trigger: "*rg"
+    replace: "rg --column --line-number --no-heading --color=always --smart-case --ignore-file ~/.rgignore "
+
+  - trigger: "*pv"
+    replace: "python3 -m venv ./venv"
+
+  - trigger: "*glsm"
+    replace: "git ls-files --modified --others --exclude-standard"
+
+  - trigger: "*gds"
+    replace: "git diff --staged"
+
+  - trigger: "*clone"
+    replace: "git clone "
+
+  - trigger: "*conf"
+    replace: "sudo nvim -O ~/.zprofile ~/.zshrc"
+
+  - trigger: "*px"
+    replace: "pnpm dlx "
+
+  - trigger: "*news"
+    replace: "curl hkkr.in"
+
+  - trigger: "*wq"
+    replace: "curl 'wttr.in?format=3'"
+
+  - trigger: "*tks"
+    replace: "tmux kill-session -t "
+
+  - trigger: "*tka"
+    replace: "tmux kill-server"
+
+  - trigger: "*dke"
+    replace: "docker exec -u root -it "
+
+  - trigger: "*dkli"
+    replace: "docker image ls"
+
+  - trigger: "*dklv"
+    replace: "docker volume ls"
+
+  - trigger: "*dklc"
+    replace: "docker container ls"
+
+  - trigger: "*dkln"
+    replace: "docker network ls"
+
+  - trigger: "*dkxi"
+    replace: "docker image rm "
+
+  - trigger: "*dkxv"
+    replace: "docker volume rm "
+
+  - trigger: "*dkxc"
+    replace: "docker container rm "
+
+  - trigger: "*dkxn"
+    replace: "docker network rm "
+
+  - trigger: "*dkri"
+    replace: "docker image rm $(docker image ls -q)"
+
+  - trigger: "*dkrv"
+    replace: "docker volume rm $(docker volume ls -q)"
+
+  - trigger: "*dkrc"
+    replace: "docker container rm $(docker container ls -q)"
+
+  - trigger: "*dkrn"
+    replace: "docker network rm $(docker network ls -q)"
+
+  - trigger: "*esr"
+    replace: "espanso restart"
+
+  - trigger: "*af"
+    replace: "ack -il "
+
+  - trigger: "*ack"
+    replace: "ack --sort-files --color "
+
+  - trigger: "*unbrew"
+    replace: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"'
+
+  - trigger: "*nvrm"
+    replace: "rm -rf ~/.local/share/nvim ~/.local/state/nvim"
+
+  - trigger: "*xcs"
+    replace: "sudo xcode-select --switch /Applications/Xcode.app"
+
+  - trigger: "*pid"
+    replace: "ps -ef | grep -v grep | grep -i \"$|$\" | awk '{print $2}'"
+
+  - trigger: "*stat"
+    replace: 'stat -f "%N -%z -%R" '
+
+  - trigger: "*ide"
+    replace: "tmux split-window -v -p 30; tmux split-window -h -p 40"
+
+  - trigger: "*dkclean"
+    replace: "docker info && docker compose down && docker container prune --force && docker image prune --all --force && docker volume prune --force"

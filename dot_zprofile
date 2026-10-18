@@ -68,9 +68,6 @@ tx=36:"
 # Setting up aliases
 alias al='alias | less' # List all aliases
 alias as='alias | grep' # Search aliases
-alias _rg='rg --column --line-number --no-heading --color=always --smart-case --glob "!{**/node_modules/**,*-lock.yaml,*.lock,package-lock.json,yarn.lock}"' # Search aliases
-
-alias _pv='python3 -m venv ./venv'
 
 alias l='eza --long --all --header --classify --group-directories-first'
 
@@ -91,16 +88,9 @@ alias v="nvim";
 # alias vim="nvim";
 
 # git shortcuts
-alias gc="git clone";
 alias gs="git status";
 alias gsw="git switch";
-alias gfp="git fetch; git pull"
-alias glsm="git ls-files --modified --others --exclude-standard"
-alias gdf="git diff --staged --name-status"
-alias gdf="git diff --staged"
 
-alias conf="_sv -O ~/.zprofile ~/.zshrc";
-alias o="ack --sort-files --color";
 alias vg='lazygit';
 alias cm="chezmoi";
 alias p="pnpm";
@@ -115,33 +105,6 @@ plz() {   # re-run the previous command under sudo, with confirmation
 alias cpwd='pwd | pbcopy'
 alias pa='pbpaste'
 
-# tmux shortcuts
-alias tka='tmux kill-server';
-alias tks='tmux kill-session -t';
-
-# docker shorthands
-alias de="docker exec -u root -it";
-alias dils="docker image ls";
-alias dvls="docker volume ls";
-alias dcls="docker container ls";
-alias dnls="docker network ls";
-alias dirm="docker image rm";
-alias dvrm="docker volume rm";
-alias dcrm="docker container rm";
-alias dnrm="docker network rm";
-alias dira='docker image rm $(docker image ls -q)';
-alias dvra='docker volume rm $(docker volume ls -q)';
-alias dcra='docker container rm $(docker container ls -q)';
-alias dnra='docker network rm $(docker network ls -q)';
-
-alias pnpx="pnpm dlx"
-
-# Don't google
-alias myip="curl ifconfig.me"
-alias ws="curl wttr.in"
-alias wss="curl 'wttr.in?format=3'"
-alias dadjoke='curl -H "Accept: text/plain" https://icanhazdadjoke.com/; echo'
-alias news='curl hkkr.in'
 alias ask="$HOME/.config/custom_scripts/cheat.sh"
 
 function trw {
@@ -150,10 +113,6 @@ function trw {
 
 function t2 {   # renamed from tree: the real /opt/homebrew/bin/tree is now reachable
   eza -aF --tree -L="${1:-2}" --icons;
-}
-
-_uninstall_homebrew() {
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)";
 }
 
 # Setting up shorthands for big boys
@@ -165,29 +124,12 @@ _r() {
 # _f / _d / _a retired: superseded by fzf's ^F (file picker) and Alt-C (cd).
 # They eval'd unquoted fzf output (filename injection) and _a tested $1 not $dir.
 
-_i() {
-    stat -f "%N -%z -%R" $1;
-}
-
 portinfo() {   # renamed from _port: _* is zsh's completion namespace
 
     echo "LSOF";
     lsof -nP -i:"$1";
     echo "NETSTAT";
     netstat -avn | grep "$1";
-}
-
-_pid() {
-   ps -ef | grep -v grep | grep -i "$1" | awk '{print $2}';
-}
-
-
-_cleanup_dc() {
-    docker info || return 1;
-    docker compose down || return 1;
-    docker container prune --force;
-    docker image prune --all --force;
-    docker volume prune --force;
 }
 
 _tn() {   # $1 = session name, $2 = optional exact path (used in preference to zoxide)
@@ -198,11 +140,6 @@ _tn() {   # $1 = session name, $2 = optional exact path (used in preference to z
 
     tmux new-session -s "$session_name" -n "main:${session_name}" -c "$session_dir" -d 2>/dev/null
     tmux attach -t "$session_name" 2>/dev/null || tmux switchc -t "$session_name" 2>/dev/null
-}
-
-_ide () {
-  tmux split-window -v -p 30;
-  tmux split-window -h -p 40;
 }
 
 function _tmux_manager() {
@@ -238,16 +175,6 @@ function y() {
 		builtin cd -- "$cwd"
 	fi
 	rm -f -- "$tmp"
-}
-
-function nvim_cleanup____ () {
-rm -rf ~/.local/share/nvim
-rm -rf ~/.local/state/nvim
-}
-
-
-function _xcode_setup_() {
-  sudo xcode-select --switch /Applications/Xcode.app
 }
 
 _run_command_digest_app() {

@@ -80,7 +80,6 @@ alias _='sudo '
 alias grep='grep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn,.idea,.tox,.venv,venv}'
 alias egrep='grep -E'
 alias fgrep='grep -F'
-(( $+commands[ack] )) && alias afind='ack -il'
 
 # --- options that came from omz libs ---------------------------------------
 # directories.zsh: autopushd is what makes the 1..9 and `-` aliases work at all.

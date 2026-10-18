@@ -169,7 +169,8 @@ zle -N zle-line-init
 _zcache fzf --zsh
 bindkey -r '^T'
 bindkey '^F' fzf-file-widget          # fzf file picker (^T stays tmux)
-bindkey '^I' fzf-tab-complete         # fzf-tab owns Tab, not fzf-completion
+source "$HOME/.config/zsh/espanso-triggers.zsh"
+bindkey '^I' _espanso_trigger_widget  # * words pick an espanso trigger, else fzf-tab
 
 # --- fzf-tab previews -----------------------------------------------------
 # directories via eza, files via bat, diffs via delta
