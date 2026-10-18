@@ -192,7 +192,18 @@ _run_command_digest_app() {
 if [[ -z $_ZPROFILE_EVALS_DONE ]]; then
   _ZPROFILE_EVALS_DONE=1
   # eval "$(starship init zsh)"
-  _zcache starship init zsh
+  # _zcache starship init zsh
+  # PROMPT2 is static: `starship prompt --continuation` cost ~15-36ms per shell.
+  if (( $+commands[starship] )); then
+    starship_cache="$_ZSH_CACHE/starship.zsh"
+    if [[ ! -s $starship_cache || $commands[starship] -nt $starship_cache ]] || [[ $(<$starship_cache) == *$'\n'PROMPT2=* ]]; then
+      mkdir -p $_ZSH_CACHE
+      starship init zsh | sed '/^PROMPT2=/d' >| $starship_cache
+    fi
+    source $starship_cache
+    PROMPT2=$'%{\e[90m%}∙%{\e[0m%}'
+    unset starship_cache
+  fi
   # direnv hook removed: it cost ~22ms on EVERY prompt and there are no .envrc
   # files anywhere. direnv is still installed — restore with:
   #   _zcache direnv hook zsh

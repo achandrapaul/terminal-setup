@@ -268,7 +268,18 @@ esac
 # zsh-syntax-highlighting wraps ZLE widgets, so it must be sourced after every
 # other widget definition. In the omz path, omz's plugin loop already did it.
 source "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-eval "$(mise activate zsh)"
+# mise activate costs ~160ms; run it right after the first prompt draws.
+_mise_activate_after_prompt() {
+  local activate_fd=$1
+  zle -F $activate_fd
+  exec {activate_fd}<&-
+  eval "$(mise activate zsh)"
+  zle reset-prompt
+}
+zle -N _mise_activate_after_prompt
+exec {_mise_activate_fd}< <(:)
+zle -F -w $_mise_activate_fd _mise_activate_after_prompt
+unset _mise_activate_fd
 
 _chezmoi_drift_precmd() {
   local drift_count
