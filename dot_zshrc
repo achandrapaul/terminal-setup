@@ -184,7 +184,8 @@ zstyle ':fzf-tab:complete:git-(log|show):*' fzf-preview \
 
 # render in a tmux popup; , / . switch completion groups
 zstyle ':fzf-tab:*' fzf-command fzf
-zstyle ':fzf-tab:*' fzf-flags --tmux=center,80%,60% --layout=default
+# zstyle ':fzf-tab:*' fzf-flags --tmux=center,80%,60% --layout=default
+zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=default
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:*' continuous-trigger '/'
 

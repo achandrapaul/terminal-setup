@@ -6,7 +6,9 @@ _espanso_trigger_widget() {
   fi
 
   local selection trigger
-  selection=$(espanso match list 2>/dev/null | fzf --tmux=center,80%,60% --layout=default --query "$current_word" --select-1)
+  local -a fzf_flags
+  zstyle -a ':fzf-tab:*' fzf-flags fzf_flags
+  selection=$(espanso match list 2>/dev/null | fzf "${fzf_flags[@]}" --query "$current_word" --select-1)
   if [[ -z $selection ]]; then
     zle reset-prompt
     return
