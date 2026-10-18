@@ -119,6 +119,10 @@ ZSH_HIGHLIGHT_STYLES[cursor]='standout'
 source ~/.zprofile
 # eval "$(zoxide init zsh)"
 _zcache zoxide init zsh
+# zoxide add costs 20-50ms per cd; record the directory in the background.
+function __zoxide_hook() {
+  \command zoxide add -- "$(__zoxide_pwd)" &!
+}
 
 # --- vi mode ---------------------------------------------------------------
 bindkey -v
