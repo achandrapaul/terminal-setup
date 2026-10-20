@@ -1,5 +1,4 @@
 [tools]
-chezmoi = "2.73.0"
 neovim = "0.12.5"
 node = "24"
 python = "3.14"
@@ -19,42 +18,12 @@ semver = "3.4.0"
 "npm:vscode-langservers-extracted" = "4.10.0"
 pnpm = "12.8.1"
 yarn = "4.18.1"
-just = "1.58.0"
 "npm:ts-node" = "10.9.2"
 "npm:jest" = "30.5.2"
 "npm:emmet-ls" = "0.4.2"
 "npm:commitizen" = "4.3.2"
 "npm:nx" = "23.2.1"
-bat = "0.26.1"
-fd = "10.5.0"
-ripgrep = "15.2.0"
-fzf = "0.74.4"
-zoxide = "0.10.0"
-atuin = "18.23.0"
-starship = "1.26.0"
-lazygit = "0.65.1"
-delta = "0.19.2"
-difftastic = "0.71.0"
-gh = "2.102.0"
-ghq = "1.11.2"
-jq = "1.8.2"
-yq = "4.54.1"
-glow = "3.0.0"
-yazi = "26.9.1"
-television = "0.15.9"
-broot = "1.60.2"
-direnv = "2.37.1"
-uv = "0.12.22"
-kubectl = "1.37.1"
-helm = "4.3.0"
-kubectx = "0.11.0"
 terraform = "1.16.4"
-awscli = "2.37.9"
-lazydocker = "0.25.2"
-caddy = "2.11.6"
-k6 = "2.3.0"
-nushell = "0.116.0"
-git-lfs = "3.8.0"
 protoc = "36.2"
 java = "temurin-21"
 golangci-lint = "2.14.0"
@@ -68,6 +37,7 @@ tree-sitter = "0.27.0"
 
 [settings]
 pin = true
+hook_env.chpwd_only = true
 
 [tasks."zsh:plugins:update"]
 description = "Re-pin zsh plugins in .chezmoiexternal.toml to upstream HEAD"
@@ -202,4 +172,27 @@ fi
 for window_name in console admin 1c exec; do
   window_exists "$window_name" || tmux new-window -d -a -t "$session_name:$" -n "$window_name" -c "$projects_dir"
 done
+'''
+
+[tasks."brew:lock"]
+description = "Refresh the Brewfile with installed versions and pin exactly the formulae in it"
+run = '''
+set -e
+brewfile="${HOMEBREW_BUNDLE_FILE:-${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile}"
+mkdir -p "$(dirname "$brewfile")"
+listed_formulae="$( [ -f "$brewfile" ] && sed -n 's/^brew "\([^"]*\)".*/\1/p' "$brewfile" || true)"
+installed_json="$(brew info --json=v2 --installed)"
+wanted_formulae="$(printf '%s\n%s\n' "$listed_formulae" "$(brew leaves --installed-on-request)" | jq -R . | jq -s 'map(select(length > 0))')"
+{
+  brew tap | sed 's/.*/tap "&"/'
+  printf '%s' "$installed_json" | jq -r --argjson wanted "$wanted_formulae" '
+    (.formulae[] | select(.full_name as $name | $wanted | index($name)) | "brew \"\(.full_name)\"\(if .keg_only and .linked_keg then ", link: true" elif (.keg_only | not) and .linked_keg == null then ", link: false" else "" end) # \(.installed[-1].version)"),
+    (.casks[] | "cask \"\(.full_token)\" # \(.installed)")'
+} >"$brewfile.tmp"
+mv "$brewfile.tmp" "$brewfile"
+pinned_formulae="$(sed -n 's/^brew "\([^"]*\)".*/\1/p' "$brewfile")"
+stale_pins="$(brew list --pinned | while read -r pinned_name; do printf '%s\n' "$pinned_formulae" | sed 's#.*/##' | grep -qxF "$pinned_name" || echo "$pinned_name"; done)"
+[ -z "$stale_pins" ] || printf '%s\n' "$stale_pins" | xargs brew unpin
+printf '%s\n' "$pinned_formulae" | xargs brew pin 2>/dev/null
+echo "$(grep -c '^brew ' "$brewfile") formulae pinned, $(grep -c '^cask ' "$brewfile") casks, $(grep -c '^tap ' "$brewfile") taps -> $brewfile"
 '''

@@ -260,6 +260,16 @@ bindkey '^g' clear-screen
 # bindkey -M menuselect '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
 # bindkey -M menuselect '\r' .accept-line
 
+# `atuin uuid` costs ~18ms; build the same 32-hex time-ordered (v7) id in zsh.
+# Same guard as atuin's init, which then skips its own `atuin uuid` call.
+if [[ -z ${ATUIN_SESSION:-} || ${ATUIN_SHLVL:-} != $SHLVL ]]; then
+  zmodload zsh/datetime
+  atuin_epoch_ms=$(( ${EPOCHREALTIME%.*} * 1000 + 10#${${EPOCHREALTIME#*.}[1,3]} ))
+  printf -v ATUIN_SESSION '%012x7%03x%x%03x%04x%04x%04x' $atuin_epoch_ms \
+    $(( RANDOM & 0xfff )) $(( 8 + (RANDOM & 3) )) $(( RANDOM & 0xfff )) $RANDOM $RANDOM $RANDOM
+  export ATUIN_SESSION ATUIN_SHLVL=$SHLVL
+  unset atuin_epoch_ms
+fi
 # eval "$(atuin init zsh)"
 _zcache atuin init zsh
 
@@ -269,21 +279,23 @@ case "$TERM_PROGRAM" in
     ;;
 esac
 
-# zsh-syntax-highlighting wraps ZLE widgets, so it must be sourced after every
-# other widget definition. In the omz path, omz's plugin loop already did it.
-source "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-# mise activate costs ~160ms; run it right after the first prompt draws.
-_mise_activate_after_prompt() {
-  local activate_fd=$1
-  zle -F $activate_fd
-  exec {activate_fd}<&-
+# zsh-syntax-highlighting (~20ms) and mise activate (~160ms) run right after the
+# first prompt draws. zsh-syntax-highlighting wraps ZLE widgets, so it must still
+# be sourced after every other widget definition, which this guarantees.
+_after_first_prompt() {
+  local after_prompt_fd=$1
+  zle -F $after_prompt_fd
+  exec {after_prompt_fd}<&-
+  source "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
   eval "$(mise activate zsh)"
+  # hook_env.chpwd_only still spawns mise every prompt; only run it on cd.
+  add-zsh-hook -d precmd _mise_hook_precmd
   zle reset-prompt
 }
-zle -N _mise_activate_after_prompt
-exec {_mise_activate_fd}< <(:)
-zle -F -w $_mise_activate_fd _mise_activate_after_prompt
-unset _mise_activate_fd
+zle -N _after_first_prompt
+exec {_after_prompt_fd}< <(:)
+zle -F -w $_after_prompt_fd _after_first_prompt
+unset _after_prompt_fd
 
 _chezmoi_drift_precmd() {
   local drift_count

@@ -7,7 +7,7 @@
 add_newline = false
 
 format = '''
-[](bold green)$directory $fill $all
+[](bold green)$directory $fill $username$hostname$git_branch$git_commit$git_state$env_var$cmd_duration$battery
 [╰$character](bold green)'''
 
 # Wait 10 milliseconds for starship to check files under the current directory.
@@ -212,7 +212,8 @@ disabled = true
 format = '[$symbol($version )]($style) '
 
 [python]
-format = '[${symbol} ${pyenv_prefix}(${version} )(\($virtualenv\) )]($style) '
+disabled = true
+format ='[${symbol} ${pyenv_prefix}(${version} )(\($virtualenv\) )]($style) '
 symbol = ''
 
 [rlang]
@@ -276,3 +277,15 @@ symbol = '⟳ '
 style = 'bold yellow'
 format = '[$symbol$env_value]($style) '
 description = 'Files out of sync with chezmoi'
+
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[jobs]
+disabled = true
+
+[container]
+disabled = true

@@ -17,6 +17,7 @@ export STARSHIP_CONFIG="$HOME/.config/starship.toml"
 export HOMEBREW_PREFIX="/opt/homebrew";
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
 export HOMEBREW_REPOSITORY="/opt/homebrew";
+export HOMEBREW_BUNDLE_FILE="$HOME/.config/homebrew/Brewfile";
 export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:";
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
 
@@ -194,11 +195,12 @@ if [[ -z $_ZPROFILE_EVALS_DONE ]]; then
   # eval "$(starship init zsh)"
   # _zcache starship init zsh
   # PROMPT2 is static: `starship prompt --continuation` cost ~15-36ms per shell.
+  # RPROMPT is dropped: right_format is unset, yet `--right` cost ~16ms per prompt.
   if (( $+commands[starship] )); then
     starship_cache="$_ZSH_CACHE/starship.zsh"
-    if [[ ! -s $starship_cache || $commands[starship] -nt $starship_cache ]] || [[ $(<$starship_cache) == *$'\n'PROMPT2=* ]]; then
+    if [[ ! -s $starship_cache || $commands[starship] -nt $starship_cache ]] || [[ $(<$starship_cache) == *$'\n'(PROMPT2|RPROMPT)=* ]]; then
       mkdir -p $_ZSH_CACHE
-      starship init zsh | sed '/^PROMPT2=/d' >| $starship_cache
+      starship init zsh | sed -e '/^PROMPT2=/d' -e '/^RPROMPT=/d' >| $starship_cache
     fi
     source $starship_cache
     PROMPT2=$'%{\e[90m%}∙%{\e[0m%}'
