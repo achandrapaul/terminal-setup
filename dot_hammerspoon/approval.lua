@@ -16,6 +16,7 @@ local activeSessionId
 local panel
 local panelHotkeys = {}
 local captureAttempts = {}
+local hiddenPromptSignatures = {}
 local retryTimer
 local renderedKey
 
@@ -51,7 +52,7 @@ local function panelHtml(entry, entryIndex)
       option.number, option.number, escapeHtml(option.label))
   end
   local sessionCount = #waitingEntries > 1 and string.format(" · %d of %d", entryIndex, #waitingEntries) or ""
-  local footerParts = { "<kbd>⌥Y</kbd> option 1", "<kbd>⌥N</kbd> cancel", "<kbd>⌥G</kbd> go to session" }
+  local footerParts = { "<kbd>⌥Y</kbd> option 1", "<kbd>⌥N</kbd> cancel", "<kbd>⌥G</kbd> go to session", "<kbd>⌥Esc</kbd> hide" }
   if hasTabs(prompt) then footerParts[#footerParts + 1] = "<kbd>⌥←</kbd><kbd>⌥→</kbd> switch tab / submit" end
   if #waitingEntries > 1 then footerParts[#footerParts + 1] = "<kbd>⌥Tab</kbd> next session" end
 
@@ -137,6 +138,7 @@ local function render()
   bindPanelKey("n", approval.cancel)
   bindPanelKey("tab", approval.cycle)
   bindPanelKey("g", approval.jump)
+  bindPanelKey("escape", approval.dismiss)
   if hasTabs(entry.prompt) then
     bindPanelKey("left", function() approval.moveTab("Left") end)
     bindPanelKey("right", function() approval.moveTab("Right") end)
@@ -158,14 +160,18 @@ end
 
 function approval.update(sessions)
   local entries = {}
+  local stillHiddenSignatures = {}
   for _, session in ipairs(sessions) do
     local prompt = promptCapture.capture(session.pane)
-    if prompt then
+    if prompt and hiddenPromptSignatures[session.session_id] == prompt.signature then
+      stillHiddenSignatures[session.session_id] = prompt.signature
+    elseif prompt then
       entries[#entries + 1] = { session = session, prompt = prompt }
     elseif session.status == "waiting" then
       scheduleCaptureRetry(session)
     end
   end
+  hiddenPromptSignatures = stillHiddenSignatures
   waitingEntries = entries
   if not activeEntry() then
     activeSessionId = entries[1] and entries[1].session.session_id
@@ -218,6 +224,13 @@ end
 function approval.jump()
   local entry = activeEntry()
   if entry then paneJump.to(entry.session.pane) end
+end
+
+function approval.dismiss()
+  local entry = activeEntry()
+  if not entry then return end
+  hiddenPromptSignatures[entry.session.session_id] = entry.prompt.signature
+  approval.update(claudeState.sessions())
 end
 
 function approval.cycle()
