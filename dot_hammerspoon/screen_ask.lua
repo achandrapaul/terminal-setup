@@ -4,6 +4,9 @@ local tmuxPath = "/opt/homebrew/bin/tmux"
 local ghosttyBundleId = "com.mitchellh.ghostty"
 local screenshotsDir = os.getenv("HOME") .. "/.claude/screenshots"
 local claudeReadyTimeoutSeconds = 15
+local analysePrompt = "Analyse this screen and tell me about it."
+local submitDelaySeconds = 0.3
+local submitTimer
 
 local function waitForClaudePrompt(paneId, onReady)
   local startedAt = os.time()
@@ -45,7 +48,12 @@ function screenAsk.askAboutFocusedWindow()
   end
   hs.application.launchOrFocusByBundleID(ghosttyBundleId)
   waitForClaudePrompt(paneId, function()
-    hs.task.new(tmuxPath, nil, { "send-keys", "-t", paneId, "-l", screenshotPath .. " " }):start()
+    local promptText = analysePrompt .. " " .. screenshotPath
+    hs.task.new(tmuxPath, function()
+      submitTimer = hs.timer.doAfter(submitDelaySeconds, function()
+        hs.task.new(tmuxPath, nil, { "send-keys", "-t", paneId, "Enter" }):start()
+      end)
+    end, { "send-keys", "-t", paneId, "-l", promptText }):start()
   end)
 end
 

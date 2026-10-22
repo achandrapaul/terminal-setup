@@ -3,12 +3,13 @@ require("hs.ipc")
 local actions = require("actions")
 local claudeState = require("claude_state")
 local edgeBar = require("edge_bar")
-local approval = require("approval")
+-- local approval = require("approval")
 local screenAsk = require("screen_ask")
 local resurrect = require("resurrect")
 local palette = require("palette")
 local summaryPanel = require("summary_panel")
 local sessionsPanel = require("sessions_panel")
+local aerospace = require("aerospace")
 
 local claudeProjectsDir = os.getenv("HOME") .. "/.claude/projects"
 local tmuxPath = "/opt/homebrew/bin/tmux"
@@ -165,6 +166,8 @@ local function enableHotkeysForFrontmostApp()
   enableHotkeysFor(frontmostApp and frontmostApp:bundleID())
 end
 
+actions.register("Reload AeroSpace", { "cmd", "ctrl" }, "0", aerospace.reload)
+
 claudeCopyHotkey = bindWhileFocused(ghosttyBundleId, { "ctrl" }, "y", copyClaudeLastResponse)
 bindWhileFocused(zoomBundleId, { "ctrl" }, "f", setZoomMicVolumeToFull)
 
@@ -177,11 +180,15 @@ actions.register("Command palette", { "cmd", "ctrl" }, "p", palette.show)
 actions.register("Digest summary", { "cmd", "ctrl" }, "d", summaryPanel.show)
 actions.register("Claude sessions", { "cmd", "ctrl" }, "c", sessionsPanel.show)
 
+function refreshClaudeEdgeBar()
+  edgeBar.show(claudeState.statusFromFiles())
+end
+
 edgeBar.start()
-claudeState.start(function(sessions)
-  approval.update(sessions)
+claudeState.start(function()
+  -- approval.update(sessions)
   sessionsPanel.update()
-  edgeBar.show(approval.isOpen() and "waiting" or claudeState.aggregateStatus())
+  refreshClaudeEdgeBar()
 end)
 
 appFocusWatcher = hs.application.watcher.new(function(_, eventType, app)

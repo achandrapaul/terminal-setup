@@ -170,6 +170,7 @@ end
 function sessionsPanel.show()
   isOpen = true
   renderedHtml = nil
+  claudeState.refresh()
   render()
 end
 

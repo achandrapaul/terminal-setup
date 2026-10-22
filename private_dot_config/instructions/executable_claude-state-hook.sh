@@ -7,6 +7,10 @@ state_dir="$HOME/.claude/session-status"
 state_file="$state_dir/$session_id.json"
 mkdir -p "$state_dir"
 
+refresh_hammerspoon_edge_bar() {
+  ( /opt/homebrew/bin/hs -c 'refreshClaudeEdgeBar()' </dev/null >/dev/null 2>&1 & )
+}
+
 case "$event_name" in
   UserPromptSubmit|PreToolUse|PostToolUse) session_status=working ;;
   Notification)
@@ -19,7 +23,7 @@ case "$event_name" in
     fi
     ;;
   Stop) session_status=done ;;
-  SessionEnd) rm -f "$state_file"; exit 0 ;;
+  SessionEnd) rm -f "$state_file"; refresh_hammerspoon_edge_bar; exit 0 ;;
   *) exit 0 ;;
 esac
 
@@ -30,4 +34,5 @@ printf '%s' "$hook_json" | jq -c \
   --argjson updated "$(date +%s)" \
   '{session_id, status: $status, pane: $pane, cwd, updated: $updated}' > "$temporary_file"
 mv "$temporary_file" "$state_file"
+refresh_hammerspoon_edge_bar
 exit 0

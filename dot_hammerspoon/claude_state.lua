@@ -3,7 +3,7 @@ local claudeState = {}
 local tmuxPath = "/opt/homebrew/bin/tmux"
 local stateDir = os.getenv("HOME") .. "/.claude/session-status"
 local claudeSessionsDir = os.getenv("HOME") .. "/.claude/sessions"
-local refreshIntervalSeconds = 1
+-- local refreshIntervalSeconds = 1
 
 local currentSessions = {}
 local currentPaneLocations = {}
@@ -85,7 +85,9 @@ local function reload()
   for fileName in hs.fs.dir(stateDir) do
     if fileName:match("%.json$") then
       local session = readSessionFile(stateDir .. "/" .. fileName)
-      if session and session.pane and livePanes[session.pane] then
+      if session and session.pane and session.pane ~= "" and not livePanes[session.pane] then
+        os.remove(stateDir .. "/" .. fileName)
+      elseif session and session.pane and livePanes[session.pane] then
         local existing = newestByPane[session.pane]
         if not existing or session.updated > existing.updated then
           newestByPane[session.pane] = session
@@ -130,6 +132,24 @@ function claudeState.aggregateStatus()
   return topStatus
 end
 
+function claudeState.statusFromFiles()
+  local statusRank = { none = 0, idle = 1, working = 2, waiting = 3 }
+  local fileStatuses = { done = "idle", working = "working", waiting = "waiting" }
+  local topStatus = "none"
+  for fileName in hs.fs.dir(stateDir) do
+    if fileName:match("%.json$") then
+      local session = readSessionFile(stateDir .. "/" .. fileName)
+      local sessionStatus = session and fileStatuses[session.status]
+      if sessionStatus and statusRank[sessionStatus] > statusRank[topStatus] then topStatus = sessionStatus end
+    end
+  end
+  return topStatus
+end
+
+function claudeState.refresh()
+  reload()
+end
+
 function claudeState.markResolved(session)
   resolvedOverrides[session.session_id] = { updated = session.updated, status = session.status }
   scheduleReload()
@@ -138,8 +158,8 @@ end
 function claudeState.start(onChange)
   changeHandler = onChange
   hs.fs.mkdir(stateDir)
-  stateWatcher = hs.pathwatcher.new(stateDir, scheduleReload):start()
-  refreshTimer = hs.timer.doEvery(refreshIntervalSeconds, reload)
+  -- stateWatcher = hs.pathwatcher.new(stateDir, scheduleReload):start()
+  -- refreshTimer = hs.timer.doEvery(refreshIntervalSeconds, reload)
   reload()
 end
 
