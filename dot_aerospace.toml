@@ -11,6 +11,8 @@ start-at-login = true
 after-login-command = []
 after-startup-command = []
 
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
 # Tree normalization (keeps nesting sane)
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
