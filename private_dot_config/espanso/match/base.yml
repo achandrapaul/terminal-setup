@@ -239,3 +239,15 @@ matches:
 
   - trigger: "*dkclean"
     replace: "docker info && docker compose down && docker container prune --force && docker image prune --all --force && docker volume prune --force"
+
+  - trigger: "*cmr"
+    replace: "chezmoi re-add"
+
+  - trigger: "*cma"
+    replace: "chezmoi add "
+
+  - trigger: "*cmf"
+    replace: "chezmoi forget "
+
+  - trigger: "*cmA"
+    replace: "chezmoi apply"

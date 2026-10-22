@@ -1,12 +1,14 @@
 #!/bin/sh
 set -eu
 
-source_dir="$(chezmoi source-path)/private_dot_config/private_digest"
+source_dir="${CHEZMOI_SOURCE_DIR:-$(chezmoi source-path)}/private_dot_config/private_digest"
 plaintext_file="$source_dir/private_config.yaml"
 encrypted_file="$source_dir/encrypted_private_config.yaml.age"
 
 [ -f "$plaintext_file" ] || exit 0
 
-chezmoi encrypt < "$plaintext_file" > "$encrypted_file.tmp"
+state_dir=$(mktemp -d)
+trap 'rm -rf "$state_dir"' EXIT
+chezmoi encrypt --persistent-state "$state_dir/state.boltdb" < "$plaintext_file" > "$encrypted_file.tmp"
 mv "$encrypted_file.tmp" "$encrypted_file"
 rm -f "$plaintext_file"
